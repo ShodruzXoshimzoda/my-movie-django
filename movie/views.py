@@ -1,7 +1,9 @@
-from django.shortcuts import render
+from django.shortcuts import render,redirect
 from django.views.generic.base import View
 from django.views.generic import ListView,DetailView
 from .models import Movie
+from .forms import ReviewForm
+
 
 '''  CBV  '''
 
@@ -17,11 +19,29 @@ from .models import Movie
 #     return render(request,'movie/moviesingle.html',context)
 
 class MoviesView(ListView):
-    ''' Spisok filmov'''
+    ''' Список фильмов '''
     model = Movie
     queryset = Movie.objects.filter(draft = False)
     template_name = 'movie/movies.html'
 
 class MovieDetailView(DetailView):
+    ''' Класс для одного фильма  '''
     model = Movie
     slug_field = 'url'
+
+class AddReview(View):
+    ''' Отзывы '''
+
+    def post(self,request,pk):
+        # print(request.POST)
+        form = ReviewForm(request.POST)
+        movie = Movie.objects.get(id=pk)
+
+        if form.is_valid():
+            form = form.save(commit=False)
+            form.movie = movie  # Привязываем отзыв к опредедному фильму
+            form.save()
+            print("Всё Окей")
+        # print(request.POST)
+        return redirect(movie.get_absolute_url())
+    
